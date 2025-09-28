@@ -1,0 +1,106 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Student {
+    int id;
+    char name[50];
+    char dept[30];
+    float gpa;
+    struct Student *next;
+} Student;
+
+Student* insert_end(Student *head, int id, char *name, char *dept, float gpa) {
+    Student *node = malloc(sizeof(Student));
+    node->id = id; strcpy(node->name,name); strcpy(node->dept,dept); node->gpa = gpa; node->next = NULL;
+    if(!head) return node;
+    Student *t=head; while(t->next) t=t->next; t->next=node; return head;
+}
+
+Student* delete_by_id(Student *head, int id) {
+    if(!head) return NULL;
+    Student *t=head,*prev=NULL;
+    while(t && t->id!=id){ prev=t; t=t->next; }
+    if(!t) { printf("ID not found\n"); return head; }
+    if(!prev) { Student *n=head->next; free(head); return n; }
+    prev->next = t->next; free(t); return head;
+}
+
+Student* search_by_id(Student *head,int id) {
+    Student *t=head; while(t){ if(t->id==id) return t; t=t->next; } return NULL;
+}
+Student* search_by_name(Student *head, char *name){
+    Student *t=head; while(t){ if(strcmp(t->name,name)==0) return t; t=t->next; } return NULL;
+}
+
+void display(Student *head){
+    Student *t=head;
+    if(!t){ printf("No records\n"); return; }
+    printf("ID\tName\tDept\tGPA\n");
+    while(t){ printf("%d\t%s\t%s\t%.2f\n",t->id,t->name,t->dept,t->gpa); t=t->next; }
+}
+
+void reverse_display(Student *head){
+    if(!head) return;
+    reverse_display(head->next);
+    printf("%d\t%s\t%s\t%.2f\n", head->id, head->name, head->dept, head->gpa);
+}
+
+Student* clone_list(Student *head){
+    if(!head) return NULL;
+    Student *newHead=NULL,*tail=NULL;
+    Student *t=head;
+    while(t){
+        Student *n = malloc(sizeof(Student));
+        *n = *t; n->next = NULL;
+        if(!newHead) newHead = tail = n; else { tail->next = n; tail = n; }
+        t = t->next;
+    }
+    return newHead;
+}
+
+float average_gpa(Student *head){
+    if(!head) return 0;
+    int cnt=0; float sum=0; Student *t=head;
+    while(t){ sum += t->gpa; cnt++; t=t->next; }
+    return cnt? sum/cnt : 0;
+}
+
+void free_list(Student *head){
+    Student *t;
+    while(head){ t = head; head = head->next; free(t); }
+}
+
+int main(){
+    Student *head = NULL;
+    int choice;
+    while(1){
+        printf("\n1.Insert 2.Delete by ID 3.Search by ID 4.Search by name 5.Display 6.Reverse Display 7.Clone 8.Avg GPA 9.Exit\nChoice: ");
+        if(scanf("%d",&choice)!=1) break;
+        if(choice==1){
+            int id; char name[50],dept[30]; float gpa;
+            printf("Enter id name dept gpa: "); scanf("%d %49s %29s %f",&id,name,dept,&gpa);
+            head = insert_end(head,id,name,dept,gpa);
+        } else if(choice==2){
+            int id; printf("Enter id: "); scanf("%d",&id); head = delete_by_id(head,id);
+        } else if(choice==3){
+            int id; printf("Enter id: "); scanf("%d",&id);
+            Student *s=search_by_id(head,id);
+            if(s) printf("Found: %d %s %s %.2f\n",s->id,s->name,s->dept,s->gpa); else printf("Not found\n");
+        } else if(choice==4){
+            char name[50]; printf("Enter name: "); scanf("%49s",name);
+            Student *s=search_by_name(head,name);
+            if(s) printf("Found: %d %s %s %.2f\n",s->id,s->name,s->dept,s->gpa); else printf("Not found\n");
+        } else if(choice==5) display(head);
+        else if(choice==6){ printf("ID\tName\tDept\tGPA\n"); reverse_display(head); }
+        else if(choice==7){
+            Student *cl = clone_list(head);
+            printf("Cloned list:\n"); display(cl); free_list(cl);
+        } else if(choice==8){
+            printf("Average GPA: %.2f\n", average_gpa(head));
+        } else break;
+    }
+    free_list(head);
+    printf("Exit\n");
+    return 0;
+}
